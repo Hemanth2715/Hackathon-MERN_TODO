@@ -137,7 +137,7 @@ const LoginPage = () => {
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                Don't have an account?{' '}
+                                Don&apos;t have an account?{' '}
                                 <Link to="/register" className="btn-text font-medium">
                                     Sign up
                                 </Link>

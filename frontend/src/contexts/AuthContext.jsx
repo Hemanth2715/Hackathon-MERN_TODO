@@ -1,6 +1,8 @@
 /* eslint-disable react/prop-types */
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authAPI, apiUtils } from '../services/api';
+import { signInWithGoogle, signOutUser, auth } from '../config/FirebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
 import socketService from '../services/socket';
 import toast from 'react-hot-toast';
 
@@ -18,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [firebaseUser, setFirebaseUser] = useState(null);
 
     // Initialize authentication state
     const initializeAuth = useCallback(async () => {
@@ -55,6 +58,15 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    // Listen to Firebase auth state changes
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            setFirebaseUser(firebaseUser);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
     // Login function
     const login = async (credentials) => {
         try {
@@ -81,6 +93,49 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Login error:', error);
             const errorMessage = apiUtils.formatErrorMessage(error);
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Google Login function
+    const googleLogin = async () => {
+        try {
+            setIsLoading(true);
+            const result = await signInWithGoogle();
+
+            if (result.success) {
+                // Send Firebase token to your backend for verification
+                const response = await authAPI.googleAuth(result.token);
+
+                if (response.success) {
+                    const { user: userData, token } = response.data;
+
+                    // Store auth data
+                    apiUtils.setAuthToken(token);
+                    apiUtils.storeUser(userData);
+
+                    // Update state
+                    setUser(userData);
+                    setIsAuthenticated(true);
+
+                    // Connect to socket
+                    socketService.connect(userData._id);
+
+                    toast.success('Google login successful!');
+                    return { success: true, user: userData };
+                } else {
+                    await signOutUser(); // Sign out from Firebase if backend auth fails
+                    throw new Error(response.error || 'Backend authentication failed');
+                }
+            } else {
+                throw new Error(result.error || 'Google sign-in failed');
+            }
+        } catch (error) {
+            console.error('Google login error:', error);
+            const errorMessage = error.message || 'Google authentication failed';
             toast.error(errorMessage);
             return { success: false, error: errorMessage };
         } finally {
@@ -128,6 +183,11 @@ export const AuthProvider = ({ children }) => {
             if (isAuthenticated) {
                 await authAPI.logout();
             }
+
+            // Sign out from Firebase
+            if (firebaseUser) {
+                await signOutUser();
+            }
         } catch (error) {
             // Don't block logout on server error
             console.error('Logout server error:', error);
@@ -136,6 +196,7 @@ export const AuthProvider = ({ children }) => {
             apiUtils.clearAuth();
             setUser(null);
             setIsAuthenticated(false);
+            setFirebaseUser(null);
 
             // Disconnect socket
             socketService.disconnect();
@@ -240,9 +301,11 @@ export const AuthProvider = ({ children }) => {
         user,
         isLoading,
         isAuthenticated,
+        firebaseUser,
         login,
         register,
         logout,
+        googleLogin,
         updateProfile,
         handleGoogleAuthSuccess,
         refreshUser,

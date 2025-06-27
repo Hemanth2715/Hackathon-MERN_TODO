@@ -1,13 +1,11 @@
-import { useState, useEffect, useContext } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';   
 import { tasksAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TaskCard from '../components/TaskCard';
 import TaskFilters from '../components/TaskFilters';
 
 const TasksPage = () => {
-    const { user } = useContext(AuthContext);
     const [searchParams, setSearchParams] = useSearchParams();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
