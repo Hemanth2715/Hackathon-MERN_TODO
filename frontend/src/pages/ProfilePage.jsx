@@ -219,8 +219,8 @@ const ProfilePage = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${activeTab === tab.id
-                                            ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                         }`}
                                 >
                                     {tab.icon}
