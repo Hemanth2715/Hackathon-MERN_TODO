@@ -21,7 +21,11 @@ const server = createServer(app);
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:5173",
+      "https://full-stack-6979d.web.app",
+      "https://hackathon-mern-todo.onrender.com",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -52,7 +56,11 @@ app.use(
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://full-stack-6979d.web.app",
+      "https://hackathon-mern-todo.onrender.com",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
