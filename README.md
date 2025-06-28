@@ -226,4 +226,5 @@ cd frontend
 npm run build
 npm run preview
 ```
+This project is a part of a hackathon run by https://www.kotamaran.com
 
